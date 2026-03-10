@@ -1,0 +1,160 @@
+:root {
+  --deck-ink: #f7f6f2;
+  --deck-muted: #c9d1cc;
+  --deck-accent: #f6b84f;
+  --deck-accent-strong: #ff7a18;
+  --deck-surface: rgba(15, 20, 24, 0.85);
+  --deck-stroke: rgba(255, 255, 255, 0.1);
+  --deck-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  --deck-grid: rgba(255, 255, 255, 0.05);
+}
+
+.slidev-layout {
+  background: #0b1014;
+  color: var(--deck-ink);
+  font-family: "IBM Plex Sans", "Avenir Next", sans-serif;
+}
+
+.slidev-layout::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--deck-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--deck-grid) 1px, transparent 1px);
+  background-size: 2.5rem 2.5rem;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.38), transparent 72%);
+  pointer-events: none;
+}
+
+h1,
+h2,
+h3,
+.slidev-layout strong {
+  font-family: "IBM Plex Sans", "Avenir Next", sans-serif;
+}
+
+code,
+pre,
+.font-mono {
+  font-family: "Iosevka", "JetBrains Mono", monospace;
+}
+
+h1 {
+  letter-spacing: -0.04em;
+}
+
+.hero-band,
+.architecture-strip,
+.card-grid,
+.split-panel,
+.matrix-table {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-band {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  padding: 0.5rem 0 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.hero-band span {
+  padding: 0.85rem 1.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--deck-ink);
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  box-shadow: none;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.value-card,
+.split-panel > div,
+.architecture-strip > div,
+.matrix-row {
+  border: 1px solid var(--deck-stroke);
+  border-radius: 0;
+  background: var(--deck-surface);
+  box-shadow: none;
+  backdrop-filter: blur(18px);
+}
+
+.value-card {
+  padding: 1.2rem;
+}
+
+.value-card h3 {
+  margin: 0 0 0.5rem;
+  color: var(--deck-accent);
+}
+
+.split-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.split-panel > div {
+  padding: 1.3rem;
+}
+
+.architecture-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin-top: 1.25rem;
+}
+
+.architecture-strip > div {
+  padding: 1.1rem;
+}
+
+.architecture-strip strong {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--deck-accent);
+}
+
+.matrix-table {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.matrix-row {
+  display: grid;
+  grid-template-columns: 1.1fr 1.25fr 1.15fr;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+}
+
+.matrix-head {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--deck-accent);
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+  .card-grid,
+  .split-panel,
+  .architecture-strip,
+  .matrix-row {
+    grid-template-columns: 1fr;
+  }
+}

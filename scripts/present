@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root=${REPO_ROOT:-$PWD}
+
+if [[ ! -f "$repo_root/slides.md" ]]; then
+  echo "expected slides.md under REPO_ROOT=$repo_root" >&2
+  exit 1
+fi
+
+temp_dir=$(mktemp -d)
+demo_port=${DEMO_SERVER_PORT:-4242}
+
+cleanup() {
+  if [[ -n "${server_pid:-}" ]]; then
+    kill "$server_pid" 2>/dev/null || true
+    wait "$server_pid" 2>/dev/null || true
+  fi
+
+  rm -rf "$temp_dir"
+}
+
+trap cleanup EXIT INT TERM
+
+probe_demo_server() {
+  local port=$1
+
+  node -e '
+    const http = require("node:http");
+    const port = Number(process.argv[1]);
+    const request = http.get(
+      {
+        host: "127.0.0.1",
+        port,
+        path: "/health",
+        timeout: 1000,
+      },
+      (response) => {
+        let body = "";
+        response.setEncoding("utf8");
+        response.on("data", (chunk) => {
+          body += chunk;
+        });
+        response.on("end", () => {
+          const ok = response.statusCode === 200 && body.includes("\"status\":\"ok\"");
+          process.exit(ok ? 0 : 1);
+        });
+      },
+    );
+
+    request.on("error", () => {
+      process.exit(1);
+    });
+
+    request.on("timeout", () => {
+      request.destroy();
+      process.exit(1);
+    });
+  ' "$port"
+}
+
+esbuild "$repo_root/demo-server/src/index.ts" \
+  --bundle \
+  --format=esm \
+  --platform=node \
+  --target=node20 \
+  --outfile="$temp_dir/demo-server.mjs"
+
+DEMO_SERVER_PORT="$demo_port" \
+REPO_ROOT="$repo_root" \
+node "$temp_dir/demo-server.mjs" >"$temp_dir/demo-server.log" 2>&1 &
+server_pid=$!
+
+sleep 1
+
+if ! kill -0 "$server_pid" 2>/dev/null; then
+  if probe_demo_server "$demo_port"; then
+    echo "reusing existing demo server on 127.0.0.1:$demo_port" >&2
+    server_pid=""
+  else
+    cat "$temp_dir/demo-server.log" >&2
+    exit 1
+  fi
+fi
+
+exec slidev "$repo_root/slides.md" \
+  --port "${SLIDEV_PORT:-3030}" \
+  --open false

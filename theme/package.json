@@ -1,0 +1,13 @@
+{
+  "name": "nix-embedded-slide-theme",
+  "type": "module",
+  "slidev": {
+    "colorSchema": "dark",
+    "defaults": {
+      "fonts": {
+        "mono": "Iosevka",
+        "sans": "IBM Plex Sans"
+      }
+    }
+  }
+}

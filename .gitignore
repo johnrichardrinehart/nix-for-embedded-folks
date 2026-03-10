@@ -1,0 +1,6 @@
+dist
+result
+.direnv
+.treefmt-cache
+.slidev
+.vite
