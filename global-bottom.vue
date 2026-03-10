@@ -5,15 +5,16 @@ import { computed } from "vue";
 const { currentPage } = useNav();
 
 const sections = [
-  { name: "Language Basics", start: 4, end: 7 },
-  { name: "devShell", start: 8, end: 9 },
-  { name: "Lazy Evaluation", start: 10, end: 11 },
-  { name: "Nix vs NixOS vs nixpkgs", start: 12, end: 13 },
-  { name: "Module System", start: 14, end: 15 },
-  { name: "Configurations", start: 16, end: 17 },
-  { name: "VM Tests", start: 18, end: 19 },
-  { name: "Substituters", start: 20, end: 24 },
-  { name: "Introspection", start: 25, end: 40 },
+  { number: 1, name: "Intro", start: 1, end: 3 },
+  { number: 2, name: "Nix vs NixOS vs nixpkgs", start: 4, end: 5 },
+  { number: 3, name: "Language Basics", start: 6, end: 9 },
+  { number: 4, name: "devShell", start: 10, end: 11 },
+  { number: 5, name: "Lazy Evaluation", start: 12, end: 13 },
+  { number: 6, name: "Module System + Configurations", start: 14, end: 17 },
+  { number: 7, name: "VM Tests", start: 18, end: 19 },
+  { number: 8, name: "Substituters", start: 20, end: 21 },
+  { number: 9, name: "Useful Embedded Packaging Patterns", start: 22, end: 24 },
+  { number: 10, name: "Introspection", start: 25, end: 27 },
 ];
 
 const activeSection = computed(
@@ -58,7 +59,7 @@ const footerTokens = computed(() => {
       kind: "section",
       key: sections[index].name,
       index,
-      label: sections[index].name,
+      label: `${sections[index].number}. ${sections[index].name}`,
     });
   }
 

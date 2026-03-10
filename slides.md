@@ -1,5 +1,5 @@
 ---
-title: Nix and NixOS Technical Deep Dive
+title: Nix and NiXOS Intro for Embedded Eng
 info: |
   Structured Nix/NixOS deck for embedded practitioners.
 theme: ./theme
@@ -7,31 +7,32 @@ mdc: true
 monaco: true
 ---
 
-> Deck 01/28 · Intro
+> Deck 01/27 · Intro
 
-# Nix and NixOS Technical Deep Dive
+# Nix and NiXOS Intro for Embedded Eng
 
 From language semantics to NixOS modules, VM tests, caches, and store introspection.
 
 ---
 
-> Deck 02/28 · Map
+> Deck 02/27 · Map
 
 ## Presentation Map
 
-1. Nix language basics
-2. `devShell` features
-3. Lazy evaluation
-4. Nix vs NixOS vs nixpkgs
-5. NixOS module system
-6. NixOS system configurations and variants
-7. NixOS VM tests
+1. Intro
+2. Nix vs NixOS vs nixpkgs
+3. Language Basics
+4. devShell
+5. Lazy Evaluation
+6. Module System + Configurations
+7. VM Tests
 8. Substituters
-9. Output and derivation introspection
+9. Useful Embedded Packaging Patterns
+10. Introspection
 
 ---
 
-> Deck 03/28 · Motivation
+> Deck 03/27 · Motivation
 
 ## Embedded Workflow Landscape (Why Teams Feel Pain)
 
@@ -51,7 +52,78 @@ Recurring pain patterns:
 
 ---
 
-> Deck 04/28 · Section 1/9: Nix Language Basics · 1/4
+> Deck 04/27 · Section 1/9: Nix vs NixOS vs nixpkgs · 1/2
+
+## Clear Separation of Concerns
+
+- **Nix**: the language + evaluator + store model.
+- **nixpkgs**: a giant function set building packages/options.
+- **NixOS**: a module system building full systems on top of nixpkgs.
+
+<div style="margin-top: 1rem">
+  <img src="/assets/nix-holy-trinity.svg" alt="Nix holy trinity diagram: Nix, nixpkgs, NixOS" style="max-width: 84%; max-height: 23vh; object-fit: contain;" />
+</div>
+
+---
+
+> Deck 05/27 · Section 1/9: Nix vs NixOS vs nixpkgs · 2/2
+
+## Mental Model for Embedded Teams
+
+- You can use Nix + nixpkgs without adopting NixOS.
+- NixOS adds host/system management and module composition.
+- Flakes can expose package outputs and NixOS configs side-by-side.
+
+```nix
+outputs = { self, nixpkgs, ... }: {
+  packages.x86_64-linux.fw = ...;
+  nixosConfigurations.lab-host = ...;
+};
+```
+
+---
+
+> Deck 06/27 · Section 2/9: Nix Language Basics · 1/4
+
+## Numeric Operations, Builtins, and Laziness
+
+```nix
+let
+  flashKiB = 1024;
+  usedKiB = 612;
+in {
+  freeKiB = flashKiB - usedKiB;
+  freePct = (flashKiB - usedKiB) * 100 / flashKiB;
+  hasElf = builtins.pathExists ./build/firmware.elf;
+  lazyDemo = { used = 42; expensive = builtins.abort "not forced"; }.used;
+}
+```
+
+- Arithmetic is straightforward.
+- `builtins.*` provides evaluator primitives.
+- Unused values stay unforced unless referenced.
+
+---
+
+> Deck 07/27 · Section 2/9: Nix Language Basics · 2/4
+
+## Functions and String Interpolation
+
+```nix
+{ pkgs, board, optimization ? "s" }:
+pkgs.stdenv.mkDerivation {
+  pname = "fw-${board}";
+  CFLAGS = "-O${optimization}";
+}
+```
+
+- Functions are first-class and curried.
+- Defaults (`?`) make interfaces ergonomic.
+- `"${...}"` interpolation composes values safely.
+
+---
+
+> Deck 08/27 · Section 2/9: Nix Language Basics · 3/4
 
 ## Literals, Attrsets, and Lists
 
@@ -71,7 +143,7 @@ Recurring pain patterns:
 
 ---
 
-> Deck 05/28 · Section 1/9: Nix Language Basics · 2/4
+> Deck 09/27 · Section 2/9: Nix Language Basics · 4/4
 
 ## `let ... in` and `rec`
 
@@ -96,46 +168,7 @@ rec {
 
 ---
 
-> Deck 06/28 · Section 1/9: Nix Language Basics · 3/4
-
-## Functions and String Interpolation
-
-```nix
-{ pkgs, board, optimization ? "s" }:
-pkgs.stdenv.mkDerivation {
-  pname = "fw-${board}";
-  CFLAGS = "-O${optimization}";
-}
-```
-
-- Functions are first-class and curried.
-- Defaults (`?`) make interfaces ergonomic.
-- `"${...}"` interpolation composes values safely.
-
----
-
-> Deck 07/28 · Section 1/9: Nix Language Basics · 4/4
-
-## Numeric Operations and Builtins
-
-```nix
-let
-  flashKiB = 1024;
-  usedKiB = 612;
-in {
-  freeKiB = flashKiB - usedKiB;
-  freePct = (flashKiB - usedKiB) * 100 / flashKiB;
-  hasElf = builtins.pathExists ./build/firmware.elf;
-}
-```
-
-- Arithmetic is straightforward.
-- `builtins.*` provides evaluator primitives.
-- Keep side effects in derivations, not expressions.
-
----
-
-> Deck 08/28 · Section 2/9: devShell Features · 1/2
+> Deck 10/27 · Section 3/9: devShell Features · 1/2
 
 ## What `devShell` Solves
 
@@ -151,7 +184,7 @@ devShells.default = pkgs.mkShell {
 
 ---
 
-> Deck 09/28 · Section 2/9: devShell Features · 2/2
+> Deck 11/27 · Section 3/9: devShell Features · 2/2
 
 ## Practical `devShell` Patterns
 
@@ -166,7 +199,7 @@ nix develop
 
 ---
 
-> Deck 10/28 · Section 3/9: Lazy Evaluation · 1/2
+> Deck 12/27 · Section 4/9: Lazy Evaluation · 1/2
 
 ## What Laziness Means in Nix
 
@@ -183,7 +216,7 @@ nix develop
 
 ---
 
-> Deck 11/28 · Section 3/9: Lazy Evaluation · 2/2
+> Deck 13/27 · Section 4/9: Lazy Evaluation · 2/2
 
 ## Laziness in Day-to-Day Work
 
@@ -199,40 +232,30 @@ lib.mkIf config.hardware.fpga.enable {
 
 ---
 
-> Deck 12/28 · Section 4/9: Nix vs NixOS vs nixpkgs · 1/2
+> Deck 14/27 · Section 5/9: NixOS Module System + Configurations · 1/4
 
-## Clear Separation of Concerns
-
-- **Nix**: the language + evaluator + store model.
-- **nixpkgs**: a giant function set building packages/options.
-- **NixOS**: a module system building full systems on top of nixpkgs.
-
-<div style="margin-top: 1rem">
-  <img src="/assets/nix-holy-trinity.svg" alt="Nix holy trinity diagram: Nix, nixpkgs, NixOS" style="max-width: 84%; max-height: 23vh; object-fit: contain;" />
-</div>
-
----
-
-> Deck 13/28 · Section 4/9: Nix vs NixOS vs nixpkgs · 2/2
-
-## Mental Model for Embedded Teams
-
-- You can use Nix + nixpkgs without adopting NixOS.
-- NixOS adds host/system management and module composition.
-- Flakes can expose package outputs and NixOS configs side-by-side.
+## Why NixOS Modules Exist
 
 ```nix
-outputs = { self, nixpkgs, ... }: {
-  packages.x86_64-linux.fw = ...;
-  nixosConfigurations.lab-host = ...;
-};
+{ lib, config, pkgs, ... }:
+{
+  imports = [
+    ./hardware.nix
+    ./services.nix
+    ./users.nix
+  ];
+}
 ```
+
+- They solve composability: many files become one coherent system config.
+- They solve conflict resolution: merge semantics are explicit and typed.
+- They solve reuse: hardware, roles, and environments can share modules.
 
 ---
 
-> Deck 14/28 · Section 5/9: NixOS Module System · 1/2
+> Deck 15/27 · Section 5/9: NixOS Module System + Configurations · 2/4
 
-## Module Structure
+## Module Structure and Scaling
 
 ```nix
 { lib, config, pkgs, ... }:
@@ -245,15 +268,6 @@ outputs = { self, nixpkgs, ... }: {
 }
 ```
 
-- Modules declare options and resulting config.
-- Merge semantics are predictable (`mkDefault`, `mkForce`, `mkIf`).
-
----
-
-> Deck 15/28 · Section 5/9: NixOS Module System · 2/2
-
-## Why Modules Scale
-
 1. Option typing catches misconfiguration early.
 2. Composition allows reusable hardware/profile modules.
 3. Evaluation yields a single coherent `config`.
@@ -262,7 +276,7 @@ Great fit for board families and per-target deltas.
 
 ---
 
-> Deck 16/28 · Section 6/9: NixOS Configurations and Variants · 1/2
+> Deck 16/27 · Section 5/9: NixOS Module System + Configurations · 3/4
 
 ## `nixosConfigurations.<name>.config`
 
@@ -276,7 +290,7 @@ nix eval .#nixosConfigurations.lab.config.networking.hostName
 
 ---
 
-> Deck 17/28 · Section 6/9: NixOS Configurations and Variants · 2/2
+> Deck 17/27 · Section 5/9: NixOS Module System + Configurations · 4/4
 
 ## `config.system.build.*` Variants
 
@@ -295,23 +309,24 @@ nix build .#nixosConfigurations.lab.config.system.build.vm
 
 ---
 
-> Deck 18/28 · Section 7/9: NixOS VM Tests · 1/2
+> Deck 18/27 · Section 6/9: NixOS VM Tests · 1/2
 
 ## Test Topology as Code
 
 NixOS tests define machine graphs and assertions in one derivation.
 
 ```nix
-import ./make-test.nix ({ pkgs, ... }: {
+{ pkgs, ... }:
+pkgs.testers.runNixOSTest {
   name = "ssh-smoke";
-  nodes.machine = { services.openssh.enable = true; };
+  nodes.machine = { ... }: { services.openssh.enable = true; };
   testScript = ''machine.wait_for_unit("sshd.service")'';
-})
+}
 ```
 
 ---
 
-> Deck 19/28 · Section 7/9: NixOS VM Tests · 2/2
+> Deck 19/27 · Section 6/9: NixOS VM Tests · 2/2
 
 ## Why Embedded Teams Should Care
 
@@ -321,7 +336,7 @@ import ./make-test.nix ({ pkgs, ... }: {
 
 ---
 
-> Deck 20/28 · Section 8/9: Substituters · 1/5
+> Deck 20/27 · Section 7/9: Substituters · 1/2
 
 ## Binary Caches and Trust
 
@@ -336,7 +351,7 @@ nix.settings.trusted-public-keys = [ "my-cache.example:abc123..." ];
 
 ---
 
-> Deck 21/28 · Section 8/9: Substituters · 2/5
+> Deck 21/27 · Section 7/9: Substituters · 2/2
 
 ## Embedded Pipeline Strategy
 
@@ -346,7 +361,7 @@ nix.settings.trusted-public-keys = [ "my-cache.example:abc123..." ];
 
 ---
 
-> Deck 22/28 · Section 8/9: Substituters · 3/5
+> Deck 22/27 · Section 8/9: Useful Embedded Packaging Patterns · 1/3
 
 ## `pkgs.requireFile` for Proprietary Toolchains
 
@@ -369,7 +384,7 @@ pkgs.requireFile {
 
 ---
 
-> Deck 23/28 · Section 8/9: Substituters · 4/5
+> Deck 23/27 · Section 8/9: Useful Embedded Packaging Patterns · 2/3
 
 ## Fixed-Output Derivations (FODs)
 
@@ -392,7 +407,7 @@ stdenv.mkDerivation {
 
 ---
 
-> Deck 24/28 · Section 8/9: Substituters · 5/5
+> Deck 24/27 · Section 8/9: Useful Embedded Packaging Patterns · 3/3
 
 ## SBOMs, Patches, and `meta.licenses`
 
@@ -414,7 +429,7 @@ stdenv.mkDerivation {
 
 ---
 
-> Deck 25/28 · Section 9/9: Introspection · 1/4
+> Deck 25/27 · Section 9/9: Introspection · 1/3
 
 ## Interactive: `fetchTarball` vs `fetchFromGitHub`
 
@@ -441,7 +456,7 @@ Pinned revision:
 
 ---
 
-> Deck 26/28 · Section 9/9: Introspection · 2/4
+> Deck 26/27 · Section 9/9: Introspection · 2/3
 
 ## Derivations and Store Graph Introspection
 
@@ -458,39 +473,15 @@ nix-diff /nix/store/<old>.drv /nix/store/<new>.drv
 
 ---
 
-> Deck 27/28 · Section 9/9: Introspection · 3/4
-
-## Instantiation vs Derivations vs Output Paths
-
-Instantiation creates `.drv` nodes. Building realizes output paths in `/nix/store`.
-
-```mermaid
-flowchart LR
-  A[Nix expression / flake attr] --> B[Instantiation]
-  B --> C[DRV Tree\n/nix/store/*.drv]
-  C --> D[Build Tree\nsandbox + deps + tmp]
-  D --> E[OUT Tree\n/nix/store/hash-name]
-  C --> F[nix derivation show]
-  E --> G[nix-store --query --requisites]
-```
-
-```bash
-# instantiate to derivation metadata
-nix-instantiate --eval -E '(import <nixpkgs> {}).hello.drvPath'
-
-# build to realize outputs
-nix build nixpkgs#hello
-```
-
----
-
-> Deck 28/28 · Section 9/9: Introspection · 4/4
+> Deck 27/27 · Section 9/9: Introspection · 3/3
 
 ## Live Introspection Slice
 
 <LiveCommandDemo
   title="Nix Introspection Quick Actions"
   description="Run small pre-wired checks to inspect this deck's own pinned environment and closure."
+  mode="modal"
+  button-label="Explore / Interact"
   :actions="[
     { id: 'current-system', label: 'Current system', hint: 'Inspect evaluator host system.' },
     { id: 'slide-tool-versions', label: 'Tool versions', hint: 'Read pinned tool versions from nixpkgs.' },
