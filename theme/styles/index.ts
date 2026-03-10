@@ -1,2 +1,2 @@
-import './layout.css'
-import './prism.css'
+import "./layout.css";
+import "./prism.css";

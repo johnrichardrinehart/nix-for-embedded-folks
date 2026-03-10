@@ -14,8 +14,10 @@ Presentation subtitle
 </div>
 
 ---
+
 layout: intro-image
 image: 'https://source.unsplash.com/collection/4966472/1920x1080'
+
 ---
 
 <div class="absolute top-10">
@@ -30,77 +32,92 @@ image: 'https://source.unsplash.com/collection/4966472/1920x1080'
 </div>
 
 ---
+
 layout: intro-image-right
 image: 'https://source.unsplash.com/collection/4966472/1920x1080'
+
 ---
 
 # Slide Title
+
 ## Slide Subtitle
 
 ---
+
 layout: image-right
 image: 'https://source.unsplash.com/collection/4966472/1920x1080'
----
-
-# Slide Title
-## Slide Subtitle
-
-* Slide bullet text
 
 ---
 
 # Slide Title
+
 ## Slide Subtitle
 
-* Slide bullet text
+- Slide bullet text
 
 ---
-layout: bullets
+
+# Slide Title
+
+## Slide Subtitle
+
+- Slide bullet text
+
 ---
 
-* Slide bullet text
+## layout: bullets
+
+- Slide bullet text
 
 ---
-layout: section
----
+
+## layout: section
 
 # Section Title
 
 ---
-layout: statement
----
+
+## layout: statement
 
 # Statement
 
 ---
-layout: fact
----
+
+## layout: fact
 
 # 100%
+
 Fact information
 
 ---
-layout: quote
----
+
+## layout: quote
 
 # "Notable quote"
+
 Attribution
 
 ---
+
 layout: 3-images
 imageLeft: 'https://source.unsplash.com/collection/4966472/1920x1080'
 imageTopRight: 'https://source.unsplash.com/collection/4966472/1920x1080'
 imageBottomRight: 'https://source.unsplash.com/collection/4966472/1920x1080'
+
 ---
 
 ---
+
 layout: image
 image: 'https://source.unsplash.com/collection/4966472/1920x1080'
+
 ---
 
 ---
+
 layout: center
 class: "text-center"
+
 ---
 
 # Learn More

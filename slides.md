@@ -7,7 +7,7 @@ mdc: true
 monaco: true
 ---
 
-> Deck 01/22 · Intro
+> Deck 01/23 · Intro
 
 # Nix and NixOS Technical Deep Dive
 
@@ -15,7 +15,7 @@ From language semantics to NixOS modules, VM tests, caches, and store introspect
 
 ---
 
-> Deck 02/22 · Map
+> Deck 02/23 · Map
 
 ## Presentation Map
 
@@ -31,7 +31,7 @@ From language semantics to NixOS modules, VM tests, caches, and store introspect
 
 ---
 
-> Deck 03/22 · Section 1/9: Nix Language Basics · 1/4
+> Deck 03/23 · Section 1/9: Nix Language Basics · 1/4
 
 ## Literals, Attrsets, and Lists
 
@@ -51,7 +51,7 @@ From language semantics to NixOS modules, VM tests, caches, and store introspect
 
 ---
 
-> Deck 04/22 · Section 1/9: Nix Language Basics · 2/4
+> Deck 04/23 · Section 1/9: Nix Language Basics · 2/4
 
 ## `let ... in` and `rec`
 
@@ -76,7 +76,7 @@ rec {
 
 ---
 
-> Deck 05/22 · Section 1/9: Nix Language Basics · 3/4
+> Deck 05/23 · Section 1/9: Nix Language Basics · 3/4
 
 ## Functions and String Interpolation
 
@@ -94,7 +94,7 @@ pkgs.stdenv.mkDerivation {
 
 ---
 
-> Deck 06/22 · Section 1/9: Nix Language Basics · 4/4
+> Deck 06/23 · Section 1/9: Nix Language Basics · 4/4
 
 ## Numeric Operations and Builtins
 
@@ -115,7 +115,7 @@ in {
 
 ---
 
-> Deck 07/22 · Section 2/9: devShell Features · 1/2
+> Deck 07/23 · Section 2/9: devShell Features · 1/2
 
 ## What `devShell` Solves
 
@@ -131,7 +131,7 @@ devShells.default = pkgs.mkShell {
 
 ---
 
-> Deck 08/22 · Section 2/9: devShell Features · 2/2
+> Deck 08/23 · Section 2/9: devShell Features · 2/2
 
 ## Practical `devShell` Patterns
 
@@ -146,7 +146,7 @@ nix develop
 
 ---
 
-> Deck 09/22 · Section 3/9: Lazy Evaluation · 1/2
+> Deck 09/23 · Section 3/9: Lazy Evaluation · 1/2
 
 ## What Laziness Means in Nix
 
@@ -163,7 +163,7 @@ nix develop
 
 ---
 
-> Deck 10/22 · Section 3/9: Lazy Evaluation · 2/2
+> Deck 10/23 · Section 3/9: Lazy Evaluation · 2/2
 
 ## Laziness in Day-to-Day Work
 
@@ -179,7 +179,7 @@ lib.mkIf config.hardware.fpga.enable {
 
 ---
 
-> Deck 11/22 · Section 4/9: Nix vs NixOS vs nixpkgs · 1/2
+> Deck 11/23 · Section 4/9: Nix vs NixOS vs nixpkgs · 1/2
 
 ## Clear Separation of Concerns
 
@@ -189,7 +189,7 @@ lib.mkIf config.hardware.fpga.enable {
 
 ---
 
-> Deck 12/22 · Section 4/9: Nix vs NixOS vs nixpkgs · 2/2
+> Deck 12/23 · Section 4/9: Nix vs NixOS vs nixpkgs · 2/2
 
 ## Mental Model for Embedded Teams
 
@@ -206,7 +206,7 @@ outputs = { self, nixpkgs, ... }: {
 
 ---
 
-> Deck 13/22 · Section 5/9: NixOS Module System · 1/2
+> Deck 13/23 · Section 5/9: NixOS Module System · 1/2
 
 ## Module Structure
 
@@ -226,7 +226,7 @@ outputs = { self, nixpkgs, ... }: {
 
 ---
 
-> Deck 14/22 · Section 5/9: NixOS Module System · 2/2
+> Deck 14/23 · Section 5/9: NixOS Module System · 2/2
 
 ## Why Modules Scale
 
@@ -238,7 +238,7 @@ Great fit for board families and per-target deltas.
 
 ---
 
-> Deck 15/22 · Section 6/9: NixOS Configurations and Variants · 1/2
+> Deck 15/23 · Section 6/9: NixOS Configurations and Variants · 1/2
 
 ## `nixosConfigurations.<name>.config`
 
@@ -252,7 +252,7 @@ nix eval .#nixosConfigurations.lab.config.networking.hostName
 
 ---
 
-> Deck 16/22 · Section 6/9: NixOS Configurations and Variants · 2/2
+> Deck 16/23 · Section 6/9: NixOS Configurations and Variants · 2/2
 
 ## `config.system.build.*` Variants
 
@@ -271,7 +271,7 @@ nix build .#nixosConfigurations.lab.config.system.build.vm
 
 ---
 
-> Deck 17/22 · Section 7/9: NixOS VM Tests · 1/2
+> Deck 17/23 · Section 7/9: NixOS VM Tests · 1/2
 
 ## Test Topology as Code
 
@@ -287,7 +287,7 @@ import ./make-test.nix ({ pkgs, ... }: {
 
 ---
 
-> Deck 18/22 · Section 7/9: NixOS VM Tests · 2/2
+> Deck 18/23 · Section 7/9: NixOS VM Tests · 2/2
 
 ## Why Embedded Teams Should Care
 
@@ -297,7 +297,7 @@ import ./make-test.nix ({ pkgs, ... }: {
 
 ---
 
-> Deck 19/22 · Section 8/9: Substituters · 1/2
+> Deck 19/23 · Section 8/9: Substituters · 1/2
 
 ## Binary Caches and Trust
 
@@ -312,7 +312,7 @@ nix.settings.trusted-public-keys = [ "my-cache.example:abc123..." ];
 
 ---
 
-> Deck 20/22 · Section 8/9: Substituters · 2/2
+> Deck 20/23 · Section 8/9: Substituters · 2/2
 
 ## Embedded Pipeline Strategy
 
@@ -322,7 +322,7 @@ nix.settings.trusted-public-keys = [ "my-cache.example:abc123..." ];
 
 ---
 
-> Deck 21/22 · Section 9/9: Introspection · 1/2
+> Deck 21/23 · Section 9/9: Introspection · 1/3
 
 ## Derivations and Store Graph Introspection
 
@@ -339,7 +339,33 @@ nix-diff /nix/store/<old>.drv /nix/store/<new>.drv
 
 ---
 
-> Deck 22/22 · Section 9/9: Introspection · 2/2
+> Deck 22/23 · Section 9/9: Introspection · 2/3
+
+## Instantiation vs Derivations vs Output Paths
+
+Instantiation creates `.drv` nodes. Building realizes output paths in `/nix/store`.
+
+```mermaid
+flowchart LR
+  A[Nix expression / flake attr] --> B[Instantiation]
+  B --> C[DRV Tree\n/nix/store/*.drv]
+  C --> D[Build Tree\nsandbox + deps + tmp]
+  D --> E[OUT Tree\n/nix/store/<hash>-name]
+  C --> F[nix derivation show]
+  E --> G[nix-store --query --requisites]
+```
+
+```bash
+# instantiate to derivation metadata
+nix-instantiate --eval -E '(import <nixpkgs> {}).hello.drvPath'
+
+# build to realize outputs
+nix build nixpkgs#hello
+```
+
+---
+
+> Deck 23/23 · Section 9/9: Introspection · 3/3
 
 ## Live Introspection Slice
 

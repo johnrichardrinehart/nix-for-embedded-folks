@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { handleBackground } from '../layoutHelper'
+import { computed } from "vue";
+import { handleBackground } from "../layoutHelper";
 
 const props = defineProps({
   image: {
@@ -9,8 +9,8 @@ const props = defineProps({
   class: {
     type: String,
   },
-})
-const style = computed(() => handleBackground(props.image))
+});
+const style = computed(() => handleBackground(props.image));
 </script>
 
 <template>
