@@ -24,10 +24,12 @@ trap cleanup EXIT INT TERM
 
 probe_demo_server() {
   local port=$1
+  local required_actions=$2
 
   node -e '
     const http = require("node:http");
     const port = Number(process.argv[1]);
+    const requiredActions = process.argv[2].split(",").filter(Boolean);
     const request = http.get(
       {
         host: "127.0.0.1",
@@ -42,7 +44,16 @@ probe_demo_server() {
           body += chunk;
         });
         response.on("end", () => {
-          const ok = response.statusCode === 200 && body.includes("\"status\":\"ok\"");
+          let ok = response.statusCode === 200 && body.includes("\"status\":\"ok\"");
+          if (ok) {
+            try {
+              const payload = JSON.parse(body);
+              const available = new Set((payload.actions || []).map((item) => item.id));
+              ok = requiredActions.every((id) => available.has(id));
+            } catch {
+              ok = false;
+            }
+          }
           process.exit(ok ? 0 : 1);
         });
       },
@@ -56,7 +67,7 @@ probe_demo_server() {
       request.destroy();
       process.exit(1);
     });
-  ' "$port"
+  ' "$port" "$required_actions"
 }
 
 esbuild "$repo_root/demo-server/src/index.ts" \
@@ -74,7 +85,7 @@ server_pid=$!
 sleep 1
 
 if ! kill -0 "$server_pid" 2>/dev/null; then
-  if probe_demo_server "$demo_port"; then
+  if probe_demo_server "$demo_port" "current-system,slide-tool-versions,slide-closure,fetchtarball-store-path,fetchfromgithub-derivation"; then
     echo "reusing existing demo server on 127.0.0.1:$demo_port" >&2
     server_pid=""
   else
