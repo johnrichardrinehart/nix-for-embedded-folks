@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import process from "node:process";
@@ -20,7 +20,10 @@ type DemoResult = {
 };
 
 const repoRoot = process.env.REPO_ROOT ?? process.cwd();
+const repoRootInSandbox = "/work";
 const port = Number.parseInt(process.env.DEMO_SERVER_PORT ?? "4242", 10);
+const bwrapBin = process.env.BWRAP_BIN ?? "bwrap";
+const bashBin = process.env.BASH_BIN ?? "bash";
 const demoScriptAction = (
   id: string,
   description: string,
@@ -87,6 +90,78 @@ const readRequestBody = async (request: http.IncomingMessage) => {
   return rawBody.length === 0 ? {} : JSON.parse(rawBody);
 };
 
+const optionalReadonlyBinds = [
+  "/run/current-system/sw",
+  "/nix/var/nix/profiles/default",
+  "/nix/var/nix/daemon-socket",
+  "/etc/nix",
+  "/etc/ssl/certs",
+  "/etc/resolv.conf",
+  "/etc/hosts",
+];
+
+const toSandboxPath = (hostPath: string) => {
+  if (!hostPath.startsWith(repoRoot)) {
+    return hostPath;
+  }
+
+  const suffix = hostPath.slice(repoRoot.length);
+  return `${repoRootInSandbox}${suffix}`;
+};
+
+const buildSandboxArgs = (command: string[]) => {
+  const args = [
+    "--unshare-all",
+    "--share-net",
+    "--new-session",
+    "--die-with-parent",
+    "--chdir",
+    repoRootInSandbox,
+    "--bind",
+    repoRoot,
+    repoRootInSandbox,
+    "--ro-bind",
+    "/nix/store",
+    "/nix/store",
+    "--proc",
+    "/proc",
+    "--dev",
+    "/dev",
+    "--tmpfs",
+    "/tmp",
+    "--tmpfs",
+    "/home",
+    "--setenv",
+    "HOME",
+    "/tmp",
+    "--setenv",
+    "REPO_ROOT",
+    repoRootInSandbox,
+    "--setenv",
+    "PATH",
+    "/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin",
+  ];
+
+  for (const candidate of optionalReadonlyBinds) {
+    if (!existsSync(candidate)) {
+      continue;
+    }
+
+    args.push("--ro-bind", candidate, candidate);
+  }
+
+  return [...args, ...command];
+};
+
+const spawnSandboxed = (command: string[]) =>
+  spawn(bwrapBin, buildSandboxArgs(command), {
+    cwd: repoRoot,
+    env: {
+      ...process.env,
+      REPO_ROOT: repoRoot,
+    },
+  });
+
 const writeSse = (
   response: http.ServerResponse,
   event: string,
@@ -99,13 +174,12 @@ const writeSse = (
 const runAction = async (action: Action) =>
   await new Promise<DemoResult>((resolve) => {
     const startedAt = Date.now();
-    const child = spawn(action.command[0], action.command.slice(1), {
-      cwd: repoRoot,
-      env: {
-        ...process.env,
-        REPO_ROOT: repoRoot,
-      },
-    });
+    const scriptInSandbox = toSandboxPath(action.command[0]);
+    const child = spawnSandboxed([
+      bashBin,
+      scriptInSandbox,
+      ...action.command.slice(1),
+    ]);
 
     let stdout = "";
     let stderr = "";
@@ -123,6 +197,17 @@ const runAction = async (action: Action) =>
 
     child.stderr.on("data", (chunk) => {
       stderr += chunk.toString();
+    });
+
+    child.on("error", (error) => {
+      clearTimeout(timeout);
+      resolve({
+        command: action.command.join(" "),
+        durationMs: Date.now() - startedAt,
+        exitCode: 127,
+        ok: false,
+        output: `failed to spawn sandbox runtime: ${error.message}`,
+      });
     });
 
     child.on("close", (exitCode) => {
@@ -151,13 +236,12 @@ const runActionStream = async (
 ) =>
   await new Promise<void>((resolve) => {
     const startedAt = Date.now();
-    const child = spawn(action.command[0], action.command.slice(1), {
-      cwd: repoRoot,
-      env: {
-        ...process.env,
-        REPO_ROOT: repoRoot,
-      },
-    });
+    const scriptInSandbox = toSandboxPath(action.command[0]);
+    const child = spawnSandboxed([
+      bashBin,
+      scriptInSandbox,
+      ...action.command.slice(1),
+    ]);
 
     let stdout = "";
     let stderr = "";
@@ -217,6 +301,27 @@ const runActionStream = async (
       writeSse(response, "stderr", { chunk: text });
     });
 
+    child.on("error", (error) => {
+      if (closed) {
+        return;
+      }
+
+      closed = true;
+      clearTimeout(timeout);
+      writeSse(response, "stderr", {
+        chunk: `failed to spawn sandbox runtime: ${error.message}\n`,
+      });
+      writeSse(response, "exit", {
+        command: action.command.join(" "),
+        durationMs: Date.now() - startedAt,
+        exitCode: 127,
+        ok: false,
+        output: `failed to spawn sandbox runtime: ${error.message}`,
+      });
+      response.end();
+      resolve();
+    });
+
     child.on("close", (exitCode) => {
       if (closed) {
         return;
@@ -251,14 +356,7 @@ const runShellStream = async (
 ) =>
   await new Promise<void>((resolve) => {
     const startedAt = Date.now();
-    const shell = process.env.SHELL ?? "bash";
-    const child = spawn(shell, ["-lc", command], {
-      cwd: repoRoot,
-      env: {
-        ...process.env,
-        REPO_ROOT: repoRoot,
-      },
-    });
+    const child = spawnSandboxed([bashBin, "-lc", command]);
 
     let stdout = "";
     let stderr = "";
@@ -310,6 +408,27 @@ const runShellStream = async (
       writeSse(response, "stderr", { chunk: text });
     });
 
+    child.on("error", (error) => {
+      if (closed) {
+        return;
+      }
+
+      closed = true;
+      clearTimeout(timeout);
+      writeSse(response, "stderr", {
+        chunk: `failed to spawn sandbox runtime: ${error.message}\n`,
+      });
+      writeSse(response, "exit", {
+        command,
+        durationMs: Date.now() - startedAt,
+        exitCode: 127,
+        ok: false,
+        output: `failed to spawn sandbox runtime: ${error.message}`,
+      });
+      response.end();
+      resolve();
+    });
+
     child.on("close", (exitCode) => {
       if (closed) {
         return;
@@ -352,6 +471,10 @@ const server = http.createServer(async (request, response) => {
         description,
         id,
       })),
+      capabilities: {
+        runStream: true,
+        shellStream: true,
+      },
       port,
       repoRoot,
       status: "ok",

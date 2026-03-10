@@ -17,8 +17,8 @@ type DemoResult = {
 
 type DemoStartPayload = {
   command: string;
-  scriptPath: string;
-  scriptSource: string;
+  scriptPath?: string | null;
+  scriptSource?: string | null;
 };
 
 const props = defineProps<{
@@ -37,6 +37,9 @@ const isOpen = ref(false);
 const shellCommand = ref("");
 const scriptPath = ref("");
 const scriptSource = ref("");
+const terminalCommand = ref("");
+const terminalHistory = ref<string[]>([]);
+const terminalHistoryIndex = ref(-1);
 const demoRoot = ref<HTMLElement | null>(null);
 const modalStyle = ref<Record<string, string>>({});
 const backdropStyle = ref<Record<string, string>>({});
@@ -82,8 +85,9 @@ const runAction = async (action: Action) => {
           output: "",
         };
         shellCommand.value = payload.command;
-        scriptPath.value = payload.scriptPath;
-        scriptSource.value = payload.scriptSource;
+        scriptPath.value = payload.scriptPath ?? "";
+        scriptSource.value = payload.scriptSource ?? "";
+        terminalCommand.value = payload.command;
       });
 
       eventSource.addEventListener("stdout", (event) => {
@@ -148,6 +152,113 @@ const runAction = async (action: Action) => {
       error instanceof Error ? error.message : "unknown demo error";
   } finally {
     activeAction.value = null;
+  }
+};
+
+const runShellCommand = async () => {
+  const command = terminalCommand.value.trim();
+  if (command.length === 0 || activeAction.value !== null) {
+    return;
+  }
+
+  activeAction.value = "shell";
+  errorMessage.value = null;
+  scriptPath.value = "";
+  scriptSource.value = "";
+
+  liveOutput.value =
+    liveOutput.value.trim().length > 0
+      ? `${liveOutput.value}\n\n$ ${command}\n`
+      : `$ ${command}\n`;
+
+  terminalHistory.value = [command, ...terminalHistory.value].slice(0, 100);
+  terminalHistoryIndex.value = -1;
+
+  try {
+    const url = new URL(`${serverOrigin()}/api/shell-stream`);
+    url.searchParams.set("command", command);
+
+    const eventSource = new EventSource(url.toString());
+
+    await new Promise<void>((resolve, reject) => {
+      eventSource.addEventListener("start", (event) => {
+        const payload = JSON.parse(
+          (event as MessageEvent).data,
+        ) as DemoStartPayload;
+
+        lastResult.value = {
+          command: payload.command,
+          durationMs: 0,
+          exitCode: 0,
+          ok: false,
+          output: "",
+        };
+        shellCommand.value = payload.command;
+      });
+
+      eventSource.addEventListener("stdout", (event) => {
+        const payload = JSON.parse((event as MessageEvent).data) as {
+          chunk: string;
+        };
+        liveOutput.value += payload.chunk;
+      });
+
+      eventSource.addEventListener("stderr", (event) => {
+        const payload = JSON.parse((event as MessageEvent).data) as {
+          chunk: string;
+        };
+        liveOutput.value += `[stderr] ${payload.chunk}`;
+      });
+
+      eventSource.addEventListener("exit", (event) => {
+        const payload = JSON.parse((event as MessageEvent).data) as DemoResult;
+        lastResult.value = payload;
+        eventSource.close();
+        resolve();
+      });
+
+      eventSource.onerror = async () => {
+        eventSource.close();
+        reject(new Error("shell stream failed"));
+      };
+    });
+  } catch (error) {
+    errorMessage.value =
+      error instanceof Error ? error.message : "unknown shell error";
+  } finally {
+    activeAction.value = null;
+  }
+};
+
+const onTerminalKeydown = (event: KeyboardEvent) => {
+  if (event.key === "ArrowUp") {
+    if (terminalHistory.value.length === 0) {
+      return;
+    }
+    event.preventDefault();
+    const nextIndex = Math.min(
+      terminalHistoryIndex.value + 1,
+      terminalHistory.value.length - 1,
+    );
+    terminalHistoryIndex.value = nextIndex;
+    terminalCommand.value = terminalHistory.value[nextIndex];
+    return;
+  }
+
+  if (event.key === "ArrowDown") {
+    if (terminalHistory.value.length === 0) {
+      return;
+    }
+    event.preventDefault();
+    const nextIndex = terminalHistoryIndex.value - 1;
+    if (nextIndex < 0) {
+      terminalHistoryIndex.value = -1;
+      terminalCommand.value = "";
+      return;
+    }
+
+    terminalHistoryIndex.value = nextIndex;
+    terminalCommand.value = terminalHistory.value[nextIndex];
   }
 };
 
@@ -279,6 +390,20 @@ watch(isOpen, async (open) => {
           <span v-else>Pick a button to run a live Nix-backed demo.</span>
         </div>
 
+        <form class="demo-terminal-input" @submit.prevent="runShellCommand">
+          <span>$</span>
+          <input
+            v-model="terminalCommand"
+            :disabled="activeAction !== null"
+            autocomplete="off"
+            placeholder="run your own command (e.g. ls, cat snippets/current-system.nix)"
+            spellcheck="false"
+            type="text"
+            @keydown="onTerminalKeydown"
+          />
+          <button :disabled="activeAction !== null" type="submit">Run</button>
+        </form>
+
         <div class="demo-shell-view">
           <p class="demo-shell-title">Command</p>
           <pre class="demo-shell-command">
@@ -292,7 +417,7 @@ $ {{ shellCommand || "waiting for action..." }}</pre
           }}</pre>
         </div>
 
-        <pre>{{ liveOutput || "No output yet." }}</pre>
+        <pre class="demo-live-output">{{ liveOutput || "No output yet." }}</pre>
       </div>
     </section>
 
@@ -354,6 +479,20 @@ $ {{ shellCommand || "waiting for action..." }}</pre
             <span v-else>Pick a button to run a live Nix-backed demo.</span>
           </div>
 
+          <form class="demo-terminal-input" @submit.prevent="runShellCommand">
+            <span>$</span>
+            <input
+              v-model="terminalCommand"
+              :disabled="activeAction !== null"
+              autocomplete="off"
+              placeholder="run your own command (e.g. ls, cat snippets/current-system.nix)"
+              spellcheck="false"
+              type="text"
+              @keydown="onTerminalKeydown"
+            />
+            <button :disabled="activeAction !== null" type="submit">Run</button>
+          </form>
+
           <div class="demo-shell-view">
             <p class="demo-shell-title">Command</p>
             <pre class="demo-shell-command">
@@ -367,7 +506,9 @@ $ {{ shellCommand || "waiting for action..." }}</pre
             }}</pre>
           </div>
 
-          <pre>{{ liveOutput || "No output yet." }}</pre>
+          <pre class="demo-live-output">{{
+            liveOutput || "No output yet."
+          }}</pre>
         </div>
       </section>
     </Teleport>
@@ -464,7 +605,7 @@ $ {{ shellCommand || "waiting for action..." }}</pre
   display: grid;
   gap: 0.35rem;
   padding: 0.9rem 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(220, 230, 236, 0.3);
   background: rgba(255, 255, 255, 0.04);
   color: #f7f6f2;
   text-align: left;
@@ -490,7 +631,7 @@ $ {{ shellCommand || "waiting for action..." }}</pre
   display: grid;
   gap: 0.7rem;
   min-height: 0;
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: auto auto auto auto minmax(0, 1fr);
 }
 
 .demo-output-meta {
@@ -507,6 +648,7 @@ $ {{ shellCommand || "waiting for action..." }}</pre
   padding: 1rem;
   overflow: auto;
   background: rgba(4, 8, 11, 0.88);
+  border: 1px solid rgba(220, 230, 236, 0.26);
   color: #d8f3dc;
   font-size: 0.84rem;
   line-height: 1.45;
@@ -515,6 +657,40 @@ $ {{ shellCommand || "waiting for action..." }}</pre
 .demo-shell-view {
   display: grid;
   gap: 0.4rem;
+}
+
+.demo-terminal-input {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.45rem;
+  align-items: center;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid rgba(220, 230, 236, 0.3);
+  background: rgba(7, 12, 16, 0.9);
+}
+
+.demo-terminal-input span {
+  color: #cfe4ce;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.demo-terminal-input input {
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #cfe4ce;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+}
+
+.demo-terminal-input button {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f7f6f2;
+  font-size: 0.78rem;
+  cursor: pointer;
 }
 
 .demo-shell-title {
@@ -529,19 +705,26 @@ $ {{ shellCommand || "waiting for action..." }}</pre
   margin: 0;
   padding: 0.65rem 0.8rem;
   background: rgba(7, 12, 16, 0.9);
+  border: 1px solid rgba(220, 230, 236, 0.26);
   color: #cfe4ce;
   font-size: 0.8rem;
 }
 
 .demo-shell-source {
-  max-height: 8rem;
   margin: 0;
   padding: 0.7rem 0.8rem;
-  overflow: auto;
+  overflow: visible;
   background: rgba(7, 12, 16, 0.9);
+  border: 1px solid rgba(220, 230, 236, 0.26);
   color: #c9d1cc;
   font-size: 0.76rem;
   line-height: 1.35;
+}
+
+.demo-live-output {
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
 }
 
 @media (max-width: 900px) {
