@@ -113,10 +113,7 @@ const runAction = async (action: Action) => {
   margin-top: 1rem;
   padding: 1.2rem;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 1.2rem;
   background: rgba(12, 17, 21, 0.82);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(20px);
 }
 
 .demo-header {
@@ -153,10 +150,7 @@ const runAction = async (action: Action) => {
   gap: 0.35rem;
   padding: 0.9rem 1rem;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 1rem;
-  background:
-    linear-gradient(135deg, rgba(246, 184, 79, 0.17), rgba(255, 122, 24, 0.1)),
-    rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.04);
   color: #f7f6f2;
   text-align: left;
   cursor: pointer;
@@ -195,7 +189,6 @@ const runAction = async (action: Action) => {
   margin: 0;
   padding: 1rem;
   overflow: auto;
-  border-radius: 1rem;
   background: rgba(4, 8, 11, 0.88);
   color: #d8f3dc;
   font-size: 0.84rem;

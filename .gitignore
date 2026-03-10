@@ -4,3 +4,4 @@ result
 .treefmt-cache
 .slidev
 .vite
+.pre-commit-config.yaml
