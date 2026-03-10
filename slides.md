@@ -1,155 +1,354 @@
 ---
-title: Nix and NixOS for Embedded Development
+title: Nix and NixOS Technical Deep Dive
 info: |
-  Interactive slides for pitching reproducible firmware, FPGA, and Linux image workflows.
-transition: fade-out
+  Structured Nix/NixOS deck for embedded practitioners.
 theme: ./theme
 mdc: true
 monaco: true
 ---
 
-# Nix and NixOS for Embedded Development
+> Deck 01/22 · Intro
 
-Build STM32 firmware, FPGA toolchains, and custom Linux images from one reproducible graph.
+# Nix and NixOS Technical Deep Dive
 
-<div class="hero-band">
-  <span>STM32 firmware</span>
-  <span>FPGA toolchains</span>
-  <span>Linux images</span>
-  <span>Cross compilation</span>
-</div>
+From language semantics to NixOS modules, VM tests, caches, and store introspection.
 
 ---
 
-## Why This Fits Embedded Teams
+> Deck 02/22 · Map
 
-<div class="card-grid">
-  <div class="value-card">
-    <h3>One graph, many artifacts</h3>
-    <p>Toolchains, SDKs, build helpers, simulators, and final images live in one composable dependency graph.</p>
-  </div>
-  <div class="value-card">
-    <h3>Reproducible environments</h3>
-    <p>The same shell drives local development, CI builds, release packaging, and on-stage demos.</p>
-  </div>
-  <div class="value-card">
-    <h3>Traceable upgrades</h3>
-    <p>Moving a compiler, BSP, or FPGA toolchain becomes an explicit diff instead of ambient workstation drift.</p>
-  </div>
-  <div class="value-card">
-    <h3>Portable demos</h3>
-    <p>This deck is itself a packaged artifact, so the presentation proves the workflow while it explains it.</p>
-  </div>
-</div>
+## Presentation Map
+
+1. Nix language basics
+2. `devShell` features
+3. Lazy evaluation
+4. Nix vs NixOS vs nixpkgs
+5. NixOS module system
+6. NixOS system configurations and variants
+7. NixOS VM tests
+8. Substituters
+9. Output and derivation introspection
 
 ---
 
-## Concrete Use Cases
+> Deck 03/22 · Section 1/9: Nix Language Basics · 1/4
 
-<div class="split-panel">
-  <div>
-    <h3>Firmware</h3>
-    <ul>
-      <li>Pin cross compilers, OpenOCD, flashing helpers, and test harnesses.</li>
-      <li>Package board-specific images and dev shells together.</li>
-      <li>Capture debug utilities and documentation generators in the same flake.</li>
-    </ul>
-  </div>
-  <div>
-    <h3>Linux and FPGA</h3>
-    <ul>
-      <li>Assemble custom root filesystems and image pipelines reproducibly.</li>
-      <li>Model vendor SDKs and synthesis tools as explicit inputs instead of tribal setup docs.</li>
-      <li>Share simulation, lint, and packaging workflows across teams and CI.</li>
-    </ul>
-  </div>
-</div>
+## Literals, Attrsets, and Lists
 
----
-
-## How This Deck Works
-
-<div class="architecture-strip">
-  <div>
-    <strong>Slidev</strong>
-    <p>Markdown plus Vue components for the narrative and UI.</p>
-  </div>
-  <div>
-    <strong>Local sidecar</strong>
-    <p>A tiny Node server executes whitelisted demo commands on demand.</p>
-  </div>
-  <div>
-    <strong>flake-parts</strong>
-    <p>`nix run`, `nix build`, and `nix flake check` all come from the same flake.</p>
-  </div>
-  <div>
-    <strong>treefmt + hooks</strong>
-    <p>Formatting and linting are enforced before each commit.</p>
-  </div>
-</div>
-
----
-
-## Live Nix Demo
-
-<LiveCommandDemo
-  title="Run the thesis live"
-  description="These buttons hit a local sidecar, which runs a small whitelist of demo commands inside the repo and streams the result back into the slide."
-  :actions="[
-    {
-      id: 'current-system',
-      label: 'Current system',
-      hint: 'Ask Nix which host system is actually running this talk.'
-    },
-    {
-      id: 'slide-tool-versions',
-      label: 'Pinned slide toolchain',
-      hint: 'Inspect the deck tooling directly from the flake input set.'
-    },
-    {
-      id: 'slide-closure',
-      label: 'Deck closure size',
-      hint: 'Show what the packaged presentation costs in the Nix store.'
-    }
-  ]"
-/>
-
----
-
-## Decision Matrix
-
-<div class="matrix-table">
-  <div class="matrix-row matrix-head">
-    <span>Route</span>
-    <span>Best at</span>
-    <span>Tradeoff</span>
-  </div>
-  <div class="matrix-row">
-    <span>Slidev + sidecar</span>
-    <span>Live local demos inside a browser-native slide deck</span>
-    <span>Requires a small app layer for command execution</span>
-  </div>
-  <div class="matrix-row">
-    <span>Quarto + reveal.js</span>
-    <span>Document-first literate publishing with strong HTML output</span>
-    <span>Less natural for arbitrary shell or Nix execution during the talk</span>
-  </div>
-  <div class="matrix-row">
-    <span>Typst + Polylux/Touying</span>
-    <span>PDF-first reliability and polished static slides</span>
-    <span>Not a native fit for runtime interactivity</span>
-  </div>
-</div>
-
----
-
-## Repo Contract
-
-```bash
-nix run .#present
-nix build .#slides
-nix build .#slides-pdf
-nix flake check
+```nix
+{
+  board = "stm32f429";
+  hz = 168000000;
+  debug = true;
+  probes = [ "stlink-v2" "jlink" ];
+  pins = { led = "PA5"; uart_tx = "PA9"; };
+}
 ```
 
-If the presentation itself is reproducible, the pitch becomes harder to dismiss.
+- Attrsets are the core data structure.
+- Lists are ordered and immutable.
+- Values are pure expressions.
+
+---
+
+> Deck 04/22 · Section 1/9: Nix Language Basics · 2/4
+
+## `let ... in` and `rec`
+
+```nix
+let
+  clockHz = 168000000;
+in {
+  timerTicks = clockHz / 1000;
+}
+```
+
+```nix
+rec {
+  pname = "firmware";
+  version = "1.2.3";
+  imageName = "${pname}-${version}.bin";
+}
+```
+
+- `let ... in` creates local bindings.
+- `rec` enables self-reference inside an attrset.
+
+---
+
+> Deck 05/22 · Section 1/9: Nix Language Basics · 3/4
+
+## Functions and String Interpolation
+
+```nix
+{ pkgs, board, optimization ? "s" }:
+pkgs.stdenv.mkDerivation {
+  pname = "fw-${board}";
+  CFLAGS = "-O${optimization}";
+}
+```
+
+- Functions are first-class and curried.
+- Defaults (`?`) make interfaces ergonomic.
+- `"${...}"` interpolation composes values safely.
+
+---
+
+> Deck 06/22 · Section 1/9: Nix Language Basics · 4/4
+
+## Numeric Operations and Builtins
+
+```nix
+let
+  flashKiB = 1024;
+  usedKiB = 612;
+in {
+  freeKiB = flashKiB - usedKiB;
+  freePct = (flashKiB - usedKiB) * 100 / flashKiB;
+  hasElf = builtins.pathExists ./build/firmware.elf;
+}
+```
+
+- Arithmetic is straightforward.
+- `builtins.*` provides evaluator primitives.
+- Keep side effects in derivations, not expressions.
+
+---
+
+> Deck 07/22 · Section 2/9: devShell Features · 1/2
+
+## What `devShell` Solves
+
+- One command (`nix develop`) provisions toolchains, linters, and helpers.
+- Team/CI parity improves because all tools are pinned in flake inputs.
+- Shell hooks can bootstrap Git hooks, env vars, and guardrails.
+
+```nix
+devShells.default = pkgs.mkShell {
+  packages = [ pkgs.cmake pkgs.openocd pkgs.gcc-arm-embedded ];
+};
+```
+
+---
+
+> Deck 08/22 · Section 2/9: devShell Features · 2/2
+
+## Practical `devShell` Patterns
+
+1. Keep shell scope narrow: only dev tools, not runtime closure.
+2. Export deterministic vars in `shellHook`.
+3. Pair with `direnv`/`nix-direnv` for auto-activation.
+
+```bash
+direnv allow
+nix develop
+```
+
+---
+
+> Deck 09/22 · Section 3/9: Lazy Evaluation · 1/2
+
+## What Laziness Means in Nix
+
+- Expressions are evaluated on demand.
+- Unused attributes are not forced.
+- This enables large package sets and overlays to remain tractable.
+
+```nix
+{
+  used = 42;
+  expensive = builtins.abort "not forced";
+}.used
+```
+
+---
+
+> Deck 10/22 · Section 3/9: Lazy Evaluation · 2/2
+
+## Laziness in Day-to-Day Work
+
+- `nix eval` often touches only queried paths.
+- Module options are merged lazily until needed.
+- Guard expensive logic behind conditionals/options.
+
+```nix
+lib.mkIf config.hardware.fpga.enable {
+  environment.systemPackages = [ pkgs.yosys pkgs.nextpnr ];
+}
+```
+
+---
+
+> Deck 11/22 · Section 4/9: Nix vs NixOS vs nixpkgs · 1/2
+
+## Clear Separation of Concerns
+
+- **Nix**: the language + evaluator + store model.
+- **nixpkgs**: a giant function set building packages/options.
+- **NixOS**: a module system building full systems on top of nixpkgs.
+
+---
+
+> Deck 12/22 · Section 4/9: Nix vs NixOS vs nixpkgs · 2/2
+
+## Mental Model for Embedded Teams
+
+- You can use Nix + nixpkgs without adopting NixOS.
+- NixOS adds host/system management and module composition.
+- Flakes can expose package outputs and NixOS configs side-by-side.
+
+```nix
+outputs = { self, nixpkgs, ... }: {
+  packages.x86_64-linux.fw = ...;
+  nixosConfigurations.lab-host = ...;
+};
+```
+
+---
+
+> Deck 13/22 · Section 5/9: NixOS Module System · 1/2
+
+## Module Structure
+
+```nix
+{ lib, config, pkgs, ... }:
+{
+  options.myFeature.enable = lib.mkEnableOption "my feature";
+
+  config = lib.mkIf config.myFeature.enable {
+    environment.systemPackages = [ pkgs.htop ];
+  };
+}
+```
+
+- Modules declare options and resulting config.
+- Merge semantics are predictable (`mkDefault`, `mkForce`, `mkIf`).
+
+---
+
+> Deck 14/22 · Section 5/9: NixOS Module System · 2/2
+
+## Why Modules Scale
+
+1. Option typing catches misconfiguration early.
+2. Composition allows reusable hardware/profile modules.
+3. Evaluation yields a single coherent `config`.
+
+Great fit for board families and per-target deltas.
+
+---
+
+> Deck 15/22 · Section 6/9: NixOS Configurations and Variants · 1/2
+
+## `nixosConfigurations.<name>.config`
+
+- `nixosConfigurations.foo.config` is the evaluated system tree.
+- You can inspect it with `nix eval`.
+- It contains both user-facing options and build artifacts.
+
+```bash
+nix eval .#nixosConfigurations.lab.config.networking.hostName
+```
+
+---
+
+> Deck 16/22 · Section 6/9: NixOS Configurations and Variants · 2/2
+
+## `config.system.build.*` Variants
+
+`config.system.build` exposes build targets from one evaluated config.
+
+Examples:
+
+- `config.system.build.toplevel`
+- `config.system.build.vm`
+- `config.system.build.isoImage`
+- `config.system.build.sdImage`
+
+```bash
+nix build .#nixosConfigurations.lab.config.system.build.vm
+```
+
+---
+
+> Deck 17/22 · Section 7/9: NixOS VM Tests · 1/2
+
+## Test Topology as Code
+
+NixOS tests define machine graphs and assertions in one derivation.
+
+```nix
+import ./make-test.nix ({ pkgs, ... }: {
+  name = "ssh-smoke";
+  nodes.machine = { services.openssh.enable = true; };
+  testScript = ''machine.wait_for_unit("sshd.service")'';
+})
+```
+
+---
+
+> Deck 18/22 · Section 7/9: NixOS VM Tests · 2/2
+
+## Why Embedded Teams Should Care
+
+- Validate update paths before touching hardware labs.
+- Assert service behavior and artifact wiring in CI.
+- Reproduce failures from test derivation hashes.
+
+---
+
+> Deck 19/22 · Section 8/9: Substituters · 1/2
+
+## Binary Caches and Trust
+
+- Substituters avoid rebuilding everything from source.
+- Nix verifies content-addressed paths and signatures.
+- Configure cache URLs and trusted public keys.
+
+```nix
+nix.settings.substituters = [ "https://cache.nixos.org" "https://my-cache.example" ];
+nix.settings.trusted-public-keys = [ "my-cache.example:abc123..." ];
+```
+
+---
+
+> Deck 20/22 · Section 8/9: Substituters · 2/2
+
+## Embedded Pipeline Strategy
+
+1. Keep a private cache for toolchains and large SDK closures.
+2. Pre-build CI outputs and distribute to developers.
+3. Use cache metrics to identify cold-start bottlenecks.
+
+---
+
+> Deck 21/22 · Section 9/9: Introspection · 1/2
+
+## Derivations and Store Graph Introspection
+
+```bash
+nix derivation show .#slides
+nix-store --query --requisites ./result
+nix-store --query --referrers /nix/store/<path>
+nix-diff /nix/store/<old>.drv /nix/store/<new>.drv
+```
+
+- `derivation show`: build recipe-level visibility.
+- `--requisites` / `--referrers`: closure graph navigation.
+- `nix-diff`: why rebuilds happened.
+
+---
+
+> Deck 22/22 · Section 9/9: Introspection · 2/2
+
+## Live Introspection Slice
+
+<LiveCommandDemo
+  title="Nix Introspection Quick Actions"
+  description="Run small pre-wired checks to inspect this deck's own pinned environment and closure."
+  :actions="[
+    { id: 'current-system', label: 'Current system', hint: 'Inspect evaluator host system.' },
+    { id: 'slide-tool-versions', label: 'Tool versions', hint: 'Read pinned tool versions from nixpkgs.' },
+    { id: 'slide-closure', label: 'Closure size', hint: 'Inspect result closure size.' }
+  ]"
+/>
