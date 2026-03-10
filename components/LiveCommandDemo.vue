@@ -540,7 +540,7 @@ $ {{ shellCommand || "waiting for action..." }}</pre
   position: fixed;
   z-index: 80;
   margin: 0;
-  overflow: hidden;
+  overflow: auto;
   grid-template-rows: auto auto 1fr;
   border: 2px solid rgba(246, 184, 79, 0.75);
   transform: none;
