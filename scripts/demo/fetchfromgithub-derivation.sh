@@ -9,5 +9,5 @@ exec nix \
   --extra-experimental-features 'nix-command flakes' \
   eval \
   --impure \
-  --raw \
-  --file "$repo_root/snippets/current-system.nix"
+  --json \
+  --file "$repo_root/snippets/fetchfromgithub-derivation.nix"

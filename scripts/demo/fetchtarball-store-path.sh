@@ -10,4 +10,4 @@ exec nix \
   eval \
   --impure \
   --raw \
-  --file "$repo_root/snippets/current-system.nix"
+  --file "$repo_root/snippets/fetchtarball-store-path.nix"

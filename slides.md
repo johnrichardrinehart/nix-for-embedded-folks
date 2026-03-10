@@ -7,7 +7,7 @@ mdc: true
 monaco: true
 ---
 
-> Deck 01/24 · Intro
+> Deck 01/28 · Intro
 
 # Nix and NixOS Technical Deep Dive
 
@@ -15,7 +15,7 @@ From language semantics to NixOS modules, VM tests, caches, and store introspect
 
 ---
 
-> Deck 02/24 · Map
+> Deck 02/28 · Map
 
 ## Presentation Map
 
@@ -31,7 +31,7 @@ From language semantics to NixOS modules, VM tests, caches, and store introspect
 
 ---
 
-> Deck 03/24 · Motivation
+> Deck 03/28 · Motivation
 
 ## Embedded Workflow Landscape (Why Teams Feel Pain)
 
@@ -51,7 +51,7 @@ Recurring pain patterns:
 
 ---
 
-> Deck 04/24 · Section 1/9: Nix Language Basics · 1/4
+> Deck 04/28 · Section 1/9: Nix Language Basics · 1/4
 
 ## Literals, Attrsets, and Lists
 
@@ -71,7 +71,7 @@ Recurring pain patterns:
 
 ---
 
-> Deck 05/24 · Section 1/9: Nix Language Basics · 2/4
+> Deck 05/28 · Section 1/9: Nix Language Basics · 2/4
 
 ## `let ... in` and `rec`
 
@@ -96,7 +96,7 @@ rec {
 
 ---
 
-> Deck 06/24 · Section 1/9: Nix Language Basics · 3/4
+> Deck 06/28 · Section 1/9: Nix Language Basics · 3/4
 
 ## Functions and String Interpolation
 
@@ -114,7 +114,7 @@ pkgs.stdenv.mkDerivation {
 
 ---
 
-> Deck 07/24 · Section 1/9: Nix Language Basics · 4/4
+> Deck 07/28 · Section 1/9: Nix Language Basics · 4/4
 
 ## Numeric Operations and Builtins
 
@@ -135,7 +135,7 @@ in {
 
 ---
 
-> Deck 08/24 · Section 2/9: devShell Features · 1/2
+> Deck 08/28 · Section 2/9: devShell Features · 1/2
 
 ## What `devShell` Solves
 
@@ -151,7 +151,7 @@ devShells.default = pkgs.mkShell {
 
 ---
 
-> Deck 09/24 · Section 2/9: devShell Features · 2/2
+> Deck 09/28 · Section 2/9: devShell Features · 2/2
 
 ## Practical `devShell` Patterns
 
@@ -166,7 +166,7 @@ nix develop
 
 ---
 
-> Deck 10/24 · Section 3/9: Lazy Evaluation · 1/2
+> Deck 10/28 · Section 3/9: Lazy Evaluation · 1/2
 
 ## What Laziness Means in Nix
 
@@ -183,7 +183,7 @@ nix develop
 
 ---
 
-> Deck 11/24 · Section 3/9: Lazy Evaluation · 2/2
+> Deck 11/28 · Section 3/9: Lazy Evaluation · 2/2
 
 ## Laziness in Day-to-Day Work
 
@@ -199,7 +199,7 @@ lib.mkIf config.hardware.fpga.enable {
 
 ---
 
-> Deck 12/24 · Section 4/9: Nix vs NixOS vs nixpkgs · 1/2
+> Deck 12/28 · Section 4/9: Nix vs NixOS vs nixpkgs · 1/2
 
 ## Clear Separation of Concerns
 
@@ -208,12 +208,12 @@ lib.mkIf config.hardware.fpga.enable {
 - **NixOS**: a module system building full systems on top of nixpkgs.
 
 <div style="margin-top: 1rem">
-  <img src="/assets/nix-holy-trinity.svg" alt="Nix holy trinity diagram: Nix, nixpkgs, NixOS" style="max-width: 86%; max-height: 27vh; object-fit: contain;" />
+  <img src="/assets/nix-holy-trinity.svg" alt="Nix holy trinity diagram: Nix, nixpkgs, NixOS" style="max-width: 84%; max-height: 23vh; object-fit: contain;" />
 </div>
 
 ---
 
-> Deck 13/24 · Section 4/9: Nix vs NixOS vs nixpkgs · 2/2
+> Deck 13/28 · Section 4/9: Nix vs NixOS vs nixpkgs · 2/2
 
 ## Mental Model for Embedded Teams
 
@@ -230,7 +230,7 @@ outputs = { self, nixpkgs, ... }: {
 
 ---
 
-> Deck 14/24 · Section 5/9: NixOS Module System · 1/2
+> Deck 14/28 · Section 5/9: NixOS Module System · 1/2
 
 ## Module Structure
 
@@ -250,7 +250,7 @@ outputs = { self, nixpkgs, ... }: {
 
 ---
 
-> Deck 15/24 · Section 5/9: NixOS Module System · 2/2
+> Deck 15/28 · Section 5/9: NixOS Module System · 2/2
 
 ## Why Modules Scale
 
@@ -262,7 +262,7 @@ Great fit for board families and per-target deltas.
 
 ---
 
-> Deck 16/24 · Section 6/9: NixOS Configurations and Variants · 1/2
+> Deck 16/28 · Section 6/9: NixOS Configurations and Variants · 1/2
 
 ## `nixosConfigurations.<name>.config`
 
@@ -276,7 +276,7 @@ nix eval .#nixosConfigurations.lab.config.networking.hostName
 
 ---
 
-> Deck 17/24 · Section 6/9: NixOS Configurations and Variants · 2/2
+> Deck 17/28 · Section 6/9: NixOS Configurations and Variants · 2/2
 
 ## `config.system.build.*` Variants
 
@@ -295,7 +295,7 @@ nix build .#nixosConfigurations.lab.config.system.build.vm
 
 ---
 
-> Deck 18/24 · Section 7/9: NixOS VM Tests · 1/2
+> Deck 18/28 · Section 7/9: NixOS VM Tests · 1/2
 
 ## Test Topology as Code
 
@@ -311,7 +311,7 @@ import ./make-test.nix ({ pkgs, ... }: {
 
 ---
 
-> Deck 19/24 · Section 7/9: NixOS VM Tests · 2/2
+> Deck 19/28 · Section 7/9: NixOS VM Tests · 2/2
 
 ## Why Embedded Teams Should Care
 
@@ -321,7 +321,7 @@ import ./make-test.nix ({ pkgs, ... }: {
 
 ---
 
-> Deck 20/24 · Section 8/9: Substituters · 1/2
+> Deck 20/28 · Section 8/9: Substituters · 1/5
 
 ## Binary Caches and Trust
 
@@ -336,7 +336,7 @@ nix.settings.trusted-public-keys = [ "my-cache.example:abc123..." ];
 
 ---
 
-> Deck 21/24 · Section 8/9: Substituters · 2/2
+> Deck 21/28 · Section 8/9: Substituters · 2/5
 
 ## Embedded Pipeline Strategy
 
@@ -346,7 +346,102 @@ nix.settings.trusted-public-keys = [ "my-cache.example:abc123..." ];
 
 ---
 
-> Deck 22/24 · Section 9/9: Introspection · 1/3
+> Deck 22/28 · Section 8/9: Substituters · 3/5
+
+## `pkgs.requireFile` for Proprietary Toolchains
+
+When redistribution is blocked, keep the download step manual but still reproducible.
+
+```nix
+pkgs.requireFile {
+  name = "STM32CubeProgrammer-lin-v2-17-0.zip";
+  sha256 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+  message = ''
+    Place vendor archive in your local store:
+      nix-store --add-fixed sha256 STM32CubeProgrammer-lin-v2-17-0.zip
+  '';
+}
+```
+
+- Encodes legal boundary in Nix evaluation.
+- Gives deterministic hash + filename checks.
+- Works well with internal docs for onboarding.
+
+---
+
+> Deck 23/28 · Section 8/9: Substituters · 4/5
+
+## Fixed-Output Derivations (FODs)
+
+FODs pin externally fetched bytes by hash, regardless of builder environment.
+
+```nix
+stdenv.mkDerivation {
+  pname = "vendor-sdk-src";
+  version = "2026.1";
+  src = fetchurl {
+    url = "https://artifacts.example/sdk-2026.1.tar.xz";
+    hash = "sha256-BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=";
+  };
+}
+```
+
+- Ideal for tarballs, firmware blobs, and vendored archives.
+- Cache hit is keyed by expected hash.
+- If upstream bytes change, build fails loudly instead of drifting.
+
+---
+
+> Deck 24/28 · Section 8/9: Substituters · 5/5
+
+## SBOMs, Patches, and `meta.licenses`
+
+Use package metadata plus source transforms to improve compliance traceability.
+
+```nix
+stdenv.mkDerivation {
+  pname = "vendor-fw";
+  version = "1.0";
+  src = fetchFromGitHub { owner = "acme"; repo = "fw"; rev = "v1.0"; hash = "..."; };
+  patches = [ ./patches/fix-cve-2026-1234.patch ];
+  meta.licenses = [ lib.licenses.bsd3 lib.licenses.mit ];
+}
+```
+
+- `patches` documents local deltas explicitly.
+- `meta.licenses` keeps license intent machine-readable.
+- SBOM generation can be derived from closure + metadata in CI.
+
+---
+
+> Deck 25/28 · Section 9/9: Introspection · 1/4
+
+## Interactive: `fetchTarball` vs `fetchFromGitHub`
+
+Pinned revision:
+
+`89da63c35d8529a5bb70bba15cdd61645289fa11`
+
+- `builtins.fetchTarball` evaluates to a realized `/nix/store/...` source path.
+- `pkgs.fetchFromGitHub` evaluates to a derivation (`drvPath` + `outPath`).
+- Snippets live in:
+  - `snippets/fetchtarball-store-path.nix`
+  - `snippets/fetchfromgithub-derivation.nix`
+
+<LiveCommandDemo
+  title="Fetch Primitive Comparison"
+  description="The first action returns a realized store path. The second shows a derivation (drvPath/outPath) from pkgs.fetchFromGitHub."
+  mode="modal"
+  button-label="Explore / Interact"
+  :actions="[
+    { id: 'fetchtarball-store-path', label: 'Evaluate fetchTarball', hint: 'Expect /nix/store/... source path.' },
+    { id: 'fetchfromgithub-derivation', label: 'Evaluate fetchFromGitHub', hint: 'Expect derivation metadata (drvPath/outPath).' }
+  ]"
+/>
+
+---
+
+> Deck 26/28 · Section 9/9: Introspection · 2/4
 
 ## Derivations and Store Graph Introspection
 
@@ -363,7 +458,7 @@ nix-diff /nix/store/<old>.drv /nix/store/<new>.drv
 
 ---
 
-> Deck 23/24 · Section 9/9: Introspection · 2/3
+> Deck 27/28 · Section 9/9: Introspection · 3/4
 
 ## Instantiation vs Derivations vs Output Paths
 
@@ -374,7 +469,7 @@ flowchart LR
   A[Nix expression / flake attr] --> B[Instantiation]
   B --> C[DRV Tree\n/nix/store/*.drv]
   C --> D[Build Tree\nsandbox + deps + tmp]
-  D --> E[OUT Tree\n/nix/store/<hash>-name]
+  D --> E[OUT Tree\n/nix/store/hash-name]
   C --> F[nix derivation show]
   E --> G[nix-store --query --requisites]
 ```
@@ -389,7 +484,7 @@ nix build nixpkgs#hello
 
 ---
 
-> Deck 24/24 · Section 9/9: Introspection · 3/3
+> Deck 28/28 · Section 9/9: Introspection · 4/4
 
 ## Live Introspection Slice
 
