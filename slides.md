@@ -7,7 +7,7 @@ mdc: true
 monaco: true
 ---
 
-> Deck 01/23 · Intro
+> Deck 01/24 · Intro
 
 # Nix and NixOS Technical Deep Dive
 
@@ -15,7 +15,7 @@ From language semantics to NixOS modules, VM tests, caches, and store introspect
 
 ---
 
-> Deck 02/23 · Map
+> Deck 02/24 · Map
 
 ## Presentation Map
 
@@ -31,7 +31,27 @@ From language semantics to NixOS modules, VM tests, caches, and store introspect
 
 ---
 
-> Deck 03/23 · Section 1/9: Nix Language Basics · 1/4
+> Deck 03/24 · Motivation
+
+## Embedded Workflow Landscape (Why Teams Feel Pain)
+
+Common starting points:
+
+- **Yocto / BitBake**: flexible and production-proven, but steep metadata complexity.
+- **Buildroot**: fast bring-up and simpler model, but weaker package graph reuse.
+- **Vendor SDK stacks**: quick wins up front, then drift and workstation snowflakes.
+- **Ad-hoc Make/CMake + scripts**: easy to begin, hard to reproduce at team scale.
+
+Recurring pain patterns:
+
+- Environment drift between developers and CI
+- Slow or unpredictable rebuild times
+- Weak artifact provenance and difficult diffing
+- Tribal setup knowledge around toolchains and SDKs
+
+---
+
+> Deck 04/24 · Section 1/9: Nix Language Basics · 1/4
 
 ## Literals, Attrsets, and Lists
 
@@ -51,7 +71,7 @@ From language semantics to NixOS modules, VM tests, caches, and store introspect
 
 ---
 
-> Deck 04/23 · Section 1/9: Nix Language Basics · 2/4
+> Deck 05/24 · Section 1/9: Nix Language Basics · 2/4
 
 ## `let ... in` and `rec`
 
@@ -76,7 +96,7 @@ rec {
 
 ---
 
-> Deck 05/23 · Section 1/9: Nix Language Basics · 3/4
+> Deck 06/24 · Section 1/9: Nix Language Basics · 3/4
 
 ## Functions and String Interpolation
 
@@ -94,7 +114,7 @@ pkgs.stdenv.mkDerivation {
 
 ---
 
-> Deck 06/23 · Section 1/9: Nix Language Basics · 4/4
+> Deck 07/24 · Section 1/9: Nix Language Basics · 4/4
 
 ## Numeric Operations and Builtins
 
@@ -115,7 +135,7 @@ in {
 
 ---
 
-> Deck 07/23 · Section 2/9: devShell Features · 1/2
+> Deck 08/24 · Section 2/9: devShell Features · 1/2
 
 ## What `devShell` Solves
 
@@ -131,7 +151,7 @@ devShells.default = pkgs.mkShell {
 
 ---
 
-> Deck 08/23 · Section 2/9: devShell Features · 2/2
+> Deck 09/24 · Section 2/9: devShell Features · 2/2
 
 ## Practical `devShell` Patterns
 
@@ -146,7 +166,7 @@ nix develop
 
 ---
 
-> Deck 09/23 · Section 3/9: Lazy Evaluation · 1/2
+> Deck 10/24 · Section 3/9: Lazy Evaluation · 1/2
 
 ## What Laziness Means in Nix
 
@@ -163,7 +183,7 @@ nix develop
 
 ---
 
-> Deck 10/23 · Section 3/9: Lazy Evaluation · 2/2
+> Deck 11/24 · Section 3/9: Lazy Evaluation · 2/2
 
 ## Laziness in Day-to-Day Work
 
@@ -179,7 +199,7 @@ lib.mkIf config.hardware.fpga.enable {
 
 ---
 
-> Deck 11/23 · Section 4/9: Nix vs NixOS vs nixpkgs · 1/2
+> Deck 12/24 · Section 4/9: Nix vs NixOS vs nixpkgs · 1/2
 
 ## Clear Separation of Concerns
 
@@ -187,9 +207,13 @@ lib.mkIf config.hardware.fpga.enable {
 - **nixpkgs**: a giant function set building packages/options.
 - **NixOS**: a module system building full systems on top of nixpkgs.
 
+<div style="margin-top: 1rem">
+  <img src="/assets/nix-holy-trinity.svg" alt="Nix holy trinity diagram: Nix, nixpkgs, NixOS" style="max-width: 86%; max-height: 27vh; object-fit: contain;" />
+</div>
+
 ---
 
-> Deck 12/23 · Section 4/9: Nix vs NixOS vs nixpkgs · 2/2
+> Deck 13/24 · Section 4/9: Nix vs NixOS vs nixpkgs · 2/2
 
 ## Mental Model for Embedded Teams
 
@@ -206,7 +230,7 @@ outputs = { self, nixpkgs, ... }: {
 
 ---
 
-> Deck 13/23 · Section 5/9: NixOS Module System · 1/2
+> Deck 14/24 · Section 5/9: NixOS Module System · 1/2
 
 ## Module Structure
 
@@ -226,7 +250,7 @@ outputs = { self, nixpkgs, ... }: {
 
 ---
 
-> Deck 14/23 · Section 5/9: NixOS Module System · 2/2
+> Deck 15/24 · Section 5/9: NixOS Module System · 2/2
 
 ## Why Modules Scale
 
@@ -238,7 +262,7 @@ Great fit for board families and per-target deltas.
 
 ---
 
-> Deck 15/23 · Section 6/9: NixOS Configurations and Variants · 1/2
+> Deck 16/24 · Section 6/9: NixOS Configurations and Variants · 1/2
 
 ## `nixosConfigurations.<name>.config`
 
@@ -252,7 +276,7 @@ nix eval .#nixosConfigurations.lab.config.networking.hostName
 
 ---
 
-> Deck 16/23 · Section 6/9: NixOS Configurations and Variants · 2/2
+> Deck 17/24 · Section 6/9: NixOS Configurations and Variants · 2/2
 
 ## `config.system.build.*` Variants
 
@@ -271,7 +295,7 @@ nix build .#nixosConfigurations.lab.config.system.build.vm
 
 ---
 
-> Deck 17/23 · Section 7/9: NixOS VM Tests · 1/2
+> Deck 18/24 · Section 7/9: NixOS VM Tests · 1/2
 
 ## Test Topology as Code
 
@@ -287,7 +311,7 @@ import ./make-test.nix ({ pkgs, ... }: {
 
 ---
 
-> Deck 18/23 · Section 7/9: NixOS VM Tests · 2/2
+> Deck 19/24 · Section 7/9: NixOS VM Tests · 2/2
 
 ## Why Embedded Teams Should Care
 
@@ -297,7 +321,7 @@ import ./make-test.nix ({ pkgs, ... }: {
 
 ---
 
-> Deck 19/23 · Section 8/9: Substituters · 1/2
+> Deck 20/24 · Section 8/9: Substituters · 1/2
 
 ## Binary Caches and Trust
 
@@ -312,7 +336,7 @@ nix.settings.trusted-public-keys = [ "my-cache.example:abc123..." ];
 
 ---
 
-> Deck 20/23 · Section 8/9: Substituters · 2/2
+> Deck 21/24 · Section 8/9: Substituters · 2/2
 
 ## Embedded Pipeline Strategy
 
@@ -322,7 +346,7 @@ nix.settings.trusted-public-keys = [ "my-cache.example:abc123..." ];
 
 ---
 
-> Deck 21/23 · Section 9/9: Introspection · 1/3
+> Deck 22/24 · Section 9/9: Introspection · 1/3
 
 ## Derivations and Store Graph Introspection
 
@@ -339,7 +363,7 @@ nix-diff /nix/store/<old>.drv /nix/store/<new>.drv
 
 ---
 
-> Deck 22/23 · Section 9/9: Introspection · 2/3
+> Deck 23/24 · Section 9/9: Introspection · 2/3
 
 ## Instantiation vs Derivations vs Output Paths
 
@@ -365,7 +389,7 @@ nix build nixpkgs#hello
 
 ---
 
-> Deck 23/23 · Section 9/9: Introspection · 3/3
+> Deck 24/24 · Section 9/9: Introspection · 3/3
 
 ## Live Introspection Slice
 
