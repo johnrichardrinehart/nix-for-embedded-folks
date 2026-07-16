@@ -1,5 +1,5 @@
 {
-  description = "Interactive Slidev deck for pitching Nix and NixOS to embedded developers";
+  description = "Interactive guide to reproducible embedded Linux workflows with Nix and NixOS";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/89da63c35d8529a5bb70bba15cdd61645289fa11";

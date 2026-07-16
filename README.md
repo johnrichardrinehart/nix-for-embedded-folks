@@ -1,6 +1,6 @@
 # Nix For Embedded Folks
 
-An interactive Slidev deck for pitching Nix and NixOS to embedded software teams.
+An interactive Slidev presentation and live demo showing embedded software teams how Nix and NixOS support reproducible development, build, and deployment workflows.
 
 ## What is here
 
